@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 
@@ -21,7 +20,12 @@ public class ChatServer {
 
         try {
             ServerSocket socket = new ServerSocket(6363);
-            Socket clientSocket = socket.accept();
+            System.out.println("The server is running ...");
+            while (true) {
+                System.out.println("The server is waiting for connection...");
+                Socket clientSocket = socket.accept();
+                new ClientHandler(clientSocket, this);
+            }
         } catch (IOException e) {
             throw new ChatServerException("Something went wrong", e);
         }
@@ -29,6 +33,20 @@ public class ChatServer {
 
     public AuthenticationService getAuthenticationService() {
         return authenticationService;
+    }
+
+    public void broadcast(String message) {
+        for (ClientHandler clientHandler : loggedClients) {
+             clientHandler.sendMessage(message);
+        }
+    }
+
+    public void subscribe(ClientHandler clientHandler) {
+        loggedClients.add(clientHandler);
+    }
+
+    public void unsubscribe(ClientHandler clientHandler) {
+        loggedClients.remove(clientHandler);
     }
 
     public boolean isLogin(String name) {
